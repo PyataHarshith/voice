@@ -9,16 +9,17 @@ load_dotenv()
 
 
 llm = AzureChatOpenAI(
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    deployment_name=os.getenv("AZURE_DEPLOYMENT_NAME"),
-    api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-    openai_api_key=os.getenv("AZURE_OPENAI_KEY ")
+    azure_endpoint=st.secrets.get("AZURE_OPENAI_ENDPOINT", os.getenv("AZURE_OPENAI_ENDPOINT")),
+    deployment_name=st.secrets.get("AZURE_DEPLOYMENT_NAME", os.getenv("AZURE_DEPLOYMENT_NAME")),
+    api_version=st.secrets.get("AZURE_OPENAI_API_VERSION", os.getenv("AZURE_OPENAI_API_VERSION")),
+    openai_api_key=st.secrets.get("AZURE_OPENAI_KEY", os.getenv("AZURE_OPENAI_KEY"))
+
 )
 
 def speak_text(text, filename="speech.mp3"):
     speech_config = speechsdk.SpeechConfig(
-        subscription=os.getenv("AZURE_SPEECH_KEY"),
-        region=os.getenv("AZURE_SPEECH_REGION")
+        subscription=st.secrets.get("AZURE_SPEECH_KEY", os.getenv("AZURE_SPEECH_KEY")),
+        region=st.secrets.get("AZURE_SPEECH_REGION", os.getenv("AZURE_SPEECH_REGION"))
     )
     speech_config.speech_synthesis_voice_name = "en-US-JennyNeural"
     audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
