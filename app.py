@@ -4,6 +4,7 @@ from langchain_openai import AzureChatOpenAI
 from langchain_core.messages import HumanMessage
 import azure.cognitiveservices.speech as speechsdk
 import streamlit as st
+import base64
 
 load_dotenv()
 
@@ -14,12 +15,20 @@ llm = AzureChatOpenAI(
     api_version=st.secrets.get("AZURE_OPENAI_API_VERSION", os.getenv("AZURE_OPENAI_API_VERSION")),
     openai_api_key=st.secrets.get("AZURE_OPENAI_KEY", os.getenv("AZURE_OPENAI_KEY"))
 
+    # azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    # deployment_name=os.getenv("AZURE_DEPLOYMENT_NAME"),
+    # api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
+    # openai_api_key=os.getenv("AZURE_OPENAI_KEY")
 )
 
 def speak_text(text, filename="speech.mp3"):
     speech_config = speechsdk.SpeechConfig(
         subscription=st.secrets.get("AZURE_SPEECH_KEY", os.getenv("AZURE_SPEECH_KEY")),
         region=st.secrets.get("AZURE_SPEECH_REGION", os.getenv("AZURE_SPEECH_REGION"))
+
+        # subscription=os.getenv("AZURE_SPEECH_KEY"),
+        # region=os.getenv("AZURE_SPEECH_REGION")
+
     )
     speech_config.speech_synthesis_voice_name = "en-US-JennyNeural"
     audio_config = speechsdk.audio.AudioOutputConfig(filename="output.mp3")
@@ -48,5 +57,13 @@ user_input = st.text_input("Enter your Prompt")
 if st.button("Summerize"):
     result = ask_and_speak(user_input)
     st.write(result)
-    with open("output.mp3", "rb") as audio_file:
-        st.audio(audio_file.read(), format="audio/mp3")
+    with open("output.mp3", "rb") as f:
+        audio_bytes = f.read()
+        b64 = base64.b64encode(audio_bytes).decode()
+    audio_html = f"""
+    <audio autoplay>
+        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+    </audio>
+    """
+    st.markdown(audio_html, unsafe_allow_html=True)
+
