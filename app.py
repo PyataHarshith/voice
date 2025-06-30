@@ -1,0 +1,49 @@
+import os
+from dotenv import load_dotenv
+from langchain_openai import AzureChatOpenAI
+from langchain_core.messages import HumanMessage
+import azure.cognitiveservices.speech as speechsdk
+import streamlit as st
+
+load_dotenv()
+
+
+llm = AzureChatOpenAI(
+    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+    deployment_name=os.getenv("AZURE_DEPLOYMENT_NAME"),
+    api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
+    openai_api_key=os.getenv("AZURE_OPENAI_KEY ")
+)
+
+def speak_text(text, filename="speech.mp3"):
+    speech_config = speechsdk.SpeechConfig(
+        subscription=os.getenv("AZURE_SPEECH_KEY"),
+        region=os.getenv("AZURE_SPEECH_REGION")
+    )
+    speech_config.speech_synthesis_voice_name = "en-US-JennyNeural"
+    audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
+
+    synthesizer = speechsdk.SpeechSynthesizer(speech_config, audio_config)
+    result = synthesizer.speak_text_async(text).get()
+
+    if result.reason == speechsdk.ResultReason.SynthesizingAudioCompleted:
+        print(f"Speech was spoken")
+    else:
+        print(f"Error: {result.reason}")
+
+def ask_and_speak(prompt):
+    print(f"Prompt: {prompt}")
+    response = llm.invoke([HumanMessage(content=prompt)])
+    print(f"Response: {response.content}")
+    speak_text(response.content)
+    return response.content
+
+
+st.header("Research Tool")
+
+user_input = st.text_input("Enter your Prompt")
+
+
+if st.button("Summerize"):
+    result = ask_and_speak(user_input)
+    st.write(result)
