@@ -22,7 +22,7 @@ def speak_text(text, filename="speech.mp3"):
         region=st.secrets.get("AZURE_SPEECH_REGION", os.getenv("AZURE_SPEECH_REGION"))
     )
     speech_config.speech_synthesis_voice_name = "en-US-JennyNeural"
-    audio_config = speechsdk.audio.AudioOutputConfig(use_default_speaker=True)
+    audio_config = speechsdk.audio.AudioOutputConfig(filename="output.mp3")
 
     synthesizer = speechsdk.SpeechSynthesizer(speech_config, audio_config)
     result = synthesizer.speak_text_async(text).get()
@@ -48,3 +48,5 @@ user_input = st.text_input("Enter your Prompt")
 if st.button("Summerize"):
     result = ask_and_speak(user_input)
     st.write(result)
+    with open("output.mp3", "rb") as audio_file:
+        st.audio(audio_file.read(), format="audio/mp3")
